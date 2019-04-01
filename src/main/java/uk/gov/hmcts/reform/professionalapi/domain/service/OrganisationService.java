@@ -42,11 +42,11 @@ public class OrganisationService {
 
         Organisation organisation = organisationRepository.save(newOrganisation);
 
-        addSuperUserToOrganisation(organisationCreationRequest.getSuperUser(), organisation);
-
         addPbaAccountToOrganisation(organisationCreationRequest.getPbaAccounts(), organisation);
 
-        organisationRepository.save(organisation);
+        addSuperUserToOrganisation(organisationCreationRequest.getSuperUser(), organisation);
+
+        organisationRepository.saveAndFlush(organisation);
 
         return new OrganisationResponse(organisation);
     }
@@ -59,8 +59,8 @@ public class OrganisationService {
             pbaAccountCreationRequest.forEach(pbaAccount -> {
                 PaymentAccount paymentAccount = new PaymentAccount(pbaAccount.getPbaNumber());
                 paymentAccount.setOrganisation(organisation);
-                paymentAccountRepository.save(paymentAccount);
-                organisation.addPaymentAccount(paymentAccount);
+                PaymentAccount persistedPaymentAccount = paymentAccountRepository.save(paymentAccount);
+                organisation.addPaymentAccount(persistedPaymentAccount);
             });
         }
     }
@@ -69,13 +69,22 @@ public class OrganisationService {
             UserCreationRequest userCreationRequest,
             Organisation organisation) {
 
-        ProfessionalUser superUser = professionalUserRepository.save(new ProfessionalUser(
+        ProfessionalUser newProfessionalUser = new ProfessionalUser(
                 userCreationRequest.getFirstName(),
                 userCreationRequest.getLastName(),
                 userCreationRequest.getEmail(),
                 ProfessionalUserStatus.PENDING.name(),
-                organisation));
+                organisation);
 
-        organisation.addProfessionalUser(superUser);
+        if (userCreationRequest.getPbaAccount() != null) {
+
+            PaymentAccount paymentAccount = organisation.getPaymentAccounts().get(0);
+
+            paymentAccount.setUser(newProfessionalUser);
+        }
+
+        ProfessionalUser persistedSuperUser = professionalUserRepository.save(newProfessionalUser);
+
+        organisation.addProfessionalUser(persistedSuperUser);
     }
 }

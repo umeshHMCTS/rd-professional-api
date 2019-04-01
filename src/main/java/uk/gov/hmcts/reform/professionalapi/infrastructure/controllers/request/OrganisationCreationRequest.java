@@ -29,8 +29,5 @@ public class OrganisationCreationRequest {
         this.superUser = superUser;
         this.pbaAccounts = pbaAccountCreationRequests;
     }
-
-
-
 }
 
