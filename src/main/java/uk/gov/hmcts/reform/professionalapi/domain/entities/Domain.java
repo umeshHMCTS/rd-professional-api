@@ -10,25 +10,21 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Entity(name = "payment_account")
+@Entity(name = "domain")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class PaymentAccount {
+public class Domain {
 
     @Id
     @GeneratedValue(strategy = AUTO)
     private UUID id;
 
-    @Column(name = "PBA_NUMBER")
-    private String pbaNumber;
+    @Column(name = "NAME")
+    private String name;
 
     @ManyToOne
     @JoinColumn(name = "ORGANISATION_ID")
     private Organisation organisation;
-
-    @ManyToOne
-    @JoinColumn(name = "USER_ID")
-    private ProfessionalUser user;
 
     @LastModifiedDate
     @Column(name = "LAST_UPDATED")
@@ -38,32 +34,21 @@ public class PaymentAccount {
     @Column(name = "CREATED")
     private LocalDateTime created;
 
-    public PaymentAccount(String pbaNumber) {
-        this.pbaNumber = pbaNumber;
-    }
-
-    public void setOrganisation(Organisation organisation) {
+    public Domain(String name, Organisation organisation) {
+        this.name = name;
         this.organisation = organisation;
-    }
-
-    public void setUser(ProfessionalUser user) {
-        this.user = user;
     }
 
     public UUID getId() {
         return id;
     }
 
-    public String getPbaNumber() {
-        return pbaNumber;
+    public String getName() {
+        return name;
     }
 
     public Organisation getOrganisation() {
         return organisation;
-    }
-
-    public ProfessionalUser getUser() {
-        return user;
     }
 
     public LocalDateTime getLastUpdated() {

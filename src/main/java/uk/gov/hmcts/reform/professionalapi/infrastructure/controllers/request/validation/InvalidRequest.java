@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request;
+package uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation;
 
 public class InvalidRequest extends RuntimeException {
 

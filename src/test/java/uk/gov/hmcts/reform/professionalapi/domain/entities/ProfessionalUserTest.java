@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.professionalapi.domain.entities;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -26,6 +26,8 @@ public class ProfessionalUserTest {
         assertThat(professionalUser.getOrganisation()).isEqualTo(organisation);
 
         assertThat(professionalUser.getId()).isNull(); // hibernate generated
+        assertThat(professionalUser.getCreated()).isNull(); // hibernate generated
+        assertThat(professionalUser.getLastUpdated()).isNull(); // hibernate generated
     }
 
 }

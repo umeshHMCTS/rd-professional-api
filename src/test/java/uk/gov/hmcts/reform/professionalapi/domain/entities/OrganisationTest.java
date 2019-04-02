@@ -16,6 +16,9 @@ public class OrganisationTest {
         assertThat(organisation.getStatus()).isEqualTo("some-status");
 
         assertThat(organisation.getId()).isNull();              // hibernate generated
+        assertThat(organisation.getId()).isNull(); // hibernate generated
+        assertThat(organisation.getCreated()).isNull(); // hibernate generated
+        assertThat(organisation.getLastUpdated()).isNull(); // hibernate generated
     }
 
     @Test

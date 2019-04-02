@@ -10,12 +10,18 @@ public class OrganisationResponse {
 
     @JsonProperty
     private final String id;
+
     @JsonProperty
     private final String name;
+
     @JsonProperty
     private final List<String> userIds;
+
     @JsonProperty
     private final List<String> pbaAccounts;
+
+    @JsonProperty
+    private final List<String> domains;
 
     public OrganisationResponse(Organisation organisation) {
         this.id = organisation.getId().toString();
@@ -27,6 +33,10 @@ public class OrganisationResponse {
         this.pbaAccounts = organisation.getPaymentAccounts()
                 .stream()
                 .map(acc -> acc.getPbaNumber())
+                .collect(toList());
+        this.domains = organisation.getDomains()
+                .stream()
+                .map(domain -> domain.getName())
                 .collect(toList());
     }
 }

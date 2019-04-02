@@ -1,39 +1,22 @@
 package uk.gov.hmcts.reform.professionalapi;
 
+import static java.time.LocalDateTime.now;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.DomainCreationRequest.aDomainCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest.anOrganisationCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.UserCreationRequest.aUserCreationRequest;
 
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.RandomStringUtils;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.ProfessionalUser;
-import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.OrganisationRepository;
-import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.ProfessionalUserRepository;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
-import uk.gov.hmcts.reform.professionalapi.util.ProfessionalReferenceDataClient;
 import uk.gov.hmcts.reform.professionalapi.util.Service2ServiceEnabledIntegrationTest;
 
 public class CreateMinimalOrganisationTest extends Service2ServiceEnabledIntegrationTest {
-
-    @Autowired
-    private OrganisationRepository organisationRepository;
-
-    @Autowired
-    private ProfessionalUserRepository professionalUserRepository;
-
-    private ProfessionalReferenceDataClient professionalReferenceDataClient;
-
-    @Before
-    public void setUp() {
-        professionalReferenceDataClient = new ProfessionalReferenceDataClient(port);
-        professionalUserRepository.deleteAll();
-        organisationRepository.deleteAll();
-    }
 
     @Test
     public void persists_and_returns_valid_minimal_organisation() {
@@ -45,30 +28,56 @@ public class CreateMinimalOrganisationTest extends Service2ServiceEnabledIntegra
                         .lastName("some-lname")
                         .email("someone@somewhere.com")
                         .build())
+                .domains(asList(aDomainCreationRequest()
+                        .domain("somewhere.com")
+                        .build()))
                 .build();
 
         Map<String, Object> response =
                 professionalReferenceDataClient.createOrganisation(organisationCreationRequest);
 
-        String nameFromResponse = (String) response.get("name");
+        String organisationNameFromResponse = (String) response.get("name");
 
         Organisation persistedOrganisation = organisationRepository
                 .findByName((String) response.get("name"));
 
         ProfessionalUser persistedSuperUser = persistedOrganisation.getUsers().get(0);
 
-        assertThat(persistedOrganisation.getName()).isEqualTo(nameFromResponse);
+        assertThat(response.get("http_status")).isEqualTo("201");
+
+        assertThat(persistedOrganisation.getName()).isEqualTo(organisationNameFromResponse);
         assertThat(persistedOrganisation.getStatus()).isEqualTo("PENDING");
         assertThat(persistedOrganisation.getUsers().size()).isEqualTo(1);
+        assertThat(persistedOrganisation.getCreated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
+        assertThat(persistedOrganisation.getLastUpdated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
 
         assertThat(persistedSuperUser.getEmailAddress()).isEqualTo("someone@somewhere.com");
         assertThat(persistedSuperUser.getFirstName()).isEqualTo("some-fname");
         assertThat(persistedSuperUser.getLastName()).isEqualTo("some-lname");
         assertThat(persistedSuperUser.getStatus()).isEqualTo("PENDING");
-        assertThat(persistedSuperUser.getOrganisation().getName()).isEqualTo(nameFromResponse);
+        assertThat(persistedSuperUser.getOrganisation().getName()).isEqualTo(organisationNameFromResponse);
+        assertThat(persistedSuperUser.getCreated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
+        assertThat(persistedSuperUser.getLastUpdated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
 
-        assertThat(nameFromResponse).isEqualTo("some-org-name");
-        assertThat((List<String>)response.get("userIds"))
+        assertThat(persistedOrganisation.getDomains().size()).isEqualTo(1);
+        assertThat(persistedOrganisation.getDomains().get(0).getName()).isEqualTo("somewhere.com");
+        assertThat(persistedOrganisation.getDomains().get(0).getCreated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
+        assertThat(persistedOrganisation.getDomains().get(0).getLastUpdated())
+                .isBeforeOrEqualTo(now())
+                .isAfter(now().minusMinutes(1));
+
+        assertThat(organisationNameFromResponse).isEqualTo("some-org-name");
+        assertThat((List<String>) response.get("userIds"))
                 .containsExactly(persistedSuperUser.getId().toString());
     }
 
@@ -105,6 +114,32 @@ public class CreateMinimalOrganisationTest extends Service2ServiceEnabledIntegra
                         .lastName("some-lname")
                         .email("someone@somewhere.com")
                         .build())
+                .build();
+
+        Map<String, Object> response =
+                professionalReferenceDataClient.createOrganisation(organisationCreationRequest);
+
+        assertThat(response.get("http_status")).isEqualTo("400");
+        assertThat(response.get("response_body")).isEqualTo("");
+
+        assertThat(organisationRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    public void returns_400_when_there_isnt_domain_matching_the_superusers_email() {
+
+        OrganisationCreationRequest organisationCreationRequest = anOrganisationCreationRequest()
+                .superUser(aUserCreationRequest()
+                        .firstName("some-fname")
+                        .lastName("some-lname")
+                        .email("someone@somewhereelse.com")
+                        .build())
+                .domains(asList(aDomainCreationRequest()
+                                .domain("somewhere.com")
+                                .build(),
+                        aDomainCreationRequest()
+                                .domain("someotherplace.com")
+                                .build()))
                 .build();
 
         Map<String, Object> response =

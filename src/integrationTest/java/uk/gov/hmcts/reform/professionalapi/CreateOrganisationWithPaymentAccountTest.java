@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.professionalapi;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest.anOrganisationCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.PbaAccountCreationRequest.aPbaPaymentAccount;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.UserCreationRequest.aUserCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.utils.OrganisationFixtures.someMinimalOrganisationRequest;
@@ -12,43 +11,18 @@ import static uk.gov.hmcts.reform.professionalapi.utils.ResponseUtils.pbaNumbers
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.PaymentAccount;
-import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.OrganisationRepository;
-import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.PaymentAccountRepository;
-import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.ProfessionalUserRepository;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
-import uk.gov.hmcts.reform.professionalapi.util.ProfessionalReferenceDataClient;
 import uk.gov.hmcts.reform.professionalapi.util.Service2ServiceEnabledIntegrationTest;
 
 public class CreateOrganisationWithPaymentAccountTest extends Service2ServiceEnabledIntegrationTest {
 
-    @Autowired
-    private OrganisationRepository organisationRepository;
-
-    @Autowired
-    private ProfessionalUserRepository professionalUserRepository;
-
-    @Autowired
-    private PaymentAccountRepository paymentAccountRepository;
-
-    private ProfessionalReferenceDataClient professionalReferenceDataClient;
-
-    @Before
-    public void setUp() {
-        professionalReferenceDataClient = new ProfessionalReferenceDataClient(port);
-        professionalUserRepository.deleteAll();
-        paymentAccountRepository.deleteAll();
-        organisationRepository.deleteAll();
-    }
-
     @Test
     public void persists_and_returns_a_single_pba_account_number_for_an_organisation() {
 
-        OrganisationCreationRequest organisationCreationRequest = anOrganisationCreationRequest()
+        OrganisationCreationRequest organisationCreationRequest = someMinimalOrganisationRequest()
                 .name("some-org-name")
                 .pbaAccounts(asList(aPbaPaymentAccount()
                         .pbaNumber("pbaNumber-1")

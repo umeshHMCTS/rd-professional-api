@@ -5,6 +5,7 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.DomainCreationRequest.aDomainCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.PbaAccountCreationRequest.aPbaPaymentAccount;
 import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.UserCreationRequest.aUserCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.utils.OrganisationFixtures.someMinimalOrganisationRequest;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
-import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.PbaAccountCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.util.AuthorizationHeadersProvider;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -49,28 +49,30 @@ public class OrganisationCreationsTest {
         String pbaNumber1 = randomAlphabetic(10);
         String pbaNumber2 = randomAlphabetic(10);
 
-        List<PbaAccountCreationRequest> pbaAccounts = asList(
-                aPbaPaymentAccount()
-                        .pbaNumber(pbaNumber1)
-                        .build(),
-                aPbaPaymentAccount()
-                        .pbaNumber(pbaNumber2)
-                        .build());
-
-        PbaAccountCreationRequest superUserPaymentAccount = aPbaPaymentAccount()
-                .pbaNumber(pbaNumber1)
-                .build();
-
         OrganisationCreationRequest organisationCreationRequest =
                 someMinimalOrganisationRequest()
                         .name(organisationName)
-                        .pbaAccounts(pbaAccounts)
+                        .pbaAccounts(asList(
+                                aPbaPaymentAccount()
+                                        .pbaNumber(pbaNumber1)
+                                        .build(),
+                                aPbaPaymentAccount()
+                                        .pbaNumber(pbaNumber2)
+                                        .build()))
                         .superUser(aUserCreationRequest()
                                 .firstName("some-fname")
                                 .lastName("some-lname")
                                 .email("someone@somewhere.com")
-                                .pbaAccount(superUserPaymentAccount)
+                                .pbaAccount(aPbaPaymentAccount()
+                                        .pbaNumber(pbaNumber1)
+                                        .build())
                                 .build())
+                        .domains(asList(aDomainCreationRequest()
+                                        .domain("somewhere.com")
+                                        .build(),
+                                aDomainCreationRequest()
+                                        .domain("someotherplace.com")
+                                        .build()))
                         .build();
 
         Map<String, Object> repsonse =
@@ -89,6 +91,7 @@ public class OrganisationCreationsTest {
         assertThat(repsonse.get("name")).isEqualTo(organisationName);
         assertThat(userIdsFrom(repsonse).size()).isEqualTo(1);
         assertThat(paymentAccountsFrom(repsonse).size()).isEqualTo(2);
+        assertThat(domainsFrom(repsonse).size()).isEqualTo(2);
     }
 
     private List<String> userIdsFrom(Map<String, Object> response) {
@@ -97,6 +100,10 @@ public class OrganisationCreationsTest {
 
     private List<String> paymentAccountsFrom(Map<String, Object> response) {
         return (List<String>) response.get("pbaAccounts");
+    }
+
+    private List<String> domainsFrom(Map<String, Object> response) {
+        return (List<String>) response.get("domains");
     }
 
 }

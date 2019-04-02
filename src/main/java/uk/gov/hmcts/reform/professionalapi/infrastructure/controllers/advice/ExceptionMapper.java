@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.InvalidRequest;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.InvalidRequest;
 
 @ControllerAdvice(basePackages = "uk.gov.hmcts.reform.professionalapi.infrastructure.controllers")
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)

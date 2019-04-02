@@ -1,7 +1,9 @@
-package uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request;
+package uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.PbaAccountCreationRequest;
 
 @Service
 public class SuperuserPbaAccountValidator implements OrganisationRequestValidator {

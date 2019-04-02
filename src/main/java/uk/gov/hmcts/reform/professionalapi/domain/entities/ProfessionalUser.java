@@ -82,4 +82,8 @@ public class ProfessionalUser {
     public LocalDateTime getCreated() {
         return created;
     }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
 }

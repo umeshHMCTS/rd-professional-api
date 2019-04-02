@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.*;
+import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.DomainRepository;
 import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.OrganisationRepository;
 import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.PaymentAccountRepository;
 import uk.gov.hmcts.reform.professionalapi.domain.service.persistence.ProfessionalUserRepository;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.DomainCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.PbaAccountCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.UserCreationRequest;
@@ -20,15 +22,18 @@ public class OrganisationService {
     private final OrganisationRepository organisationRepository;
     private final ProfessionalUserRepository professionalUserRepository;
     private final PaymentAccountRepository paymentAccountRepository;
+    private final DomainRepository domainRepository;
 
     public OrganisationService(
             OrganisationRepository organisationRepository,
             ProfessionalUserRepository professionalUserRepository,
-            PaymentAccountRepository paymentAccountRepository) {
+            PaymentAccountRepository paymentAccountRepository,
+            DomainRepository domainRepository) {
 
         this.organisationRepository = organisationRepository;
         this.professionalUserRepository = professionalUserRepository;
         this.paymentAccountRepository = paymentAccountRepository;
+        this.domainRepository = domainRepository;
     }
 
     @Transactional
@@ -40,15 +45,26 @@ public class OrganisationService {
                 OrganisationStatus.PENDING.name()
         );
 
-        Organisation organisation = organisationRepository.save(newOrganisation);
+        Organisation persistedOrganisation = organisationRepository.save(newOrganisation);
 
-        addPbaAccountToOrganisation(organisationCreationRequest.getPbaAccounts(), organisation);
+        addDomainToOrganisation(organisationCreationRequest.getDomains(), persistedOrganisation);
 
-        addSuperUserToOrganisation(organisationCreationRequest.getSuperUser(), organisation);
+        addPbaAccountToOrganisation(organisationCreationRequest.getPbaAccounts(), persistedOrganisation);
 
-        organisationRepository.saveAndFlush(organisation);
+        addSuperUserToOrganisation(organisationCreationRequest.getSuperUser(), persistedOrganisation);
 
-        return new OrganisationResponse(organisation);
+        organisationRepository.save(persistedOrganisation);
+
+        return new OrganisationResponse(persistedOrganisation);
+    }
+
+    private void addDomainToOrganisation(List<DomainCreationRequest> domainRequests, Organisation organisation) {
+
+        domainRequests.forEach(domainRequest -> {
+            Domain newDomain = new Domain(domainRequest.getDomain(), organisation);
+            Domain persistedPaymentAccount = domainRepository.save(newDomain);
+            organisation.addDomain(persistedPaymentAccount);
+        });
     }
 
     private void addPbaAccountToOrganisation(

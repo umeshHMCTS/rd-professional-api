@@ -7,6 +7,8 @@ import static uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.req
 import static uk.gov.hmcts.reform.professionalapi.utils.OrganisationFixtures.someMinimalOrganisationRequest;
 
 import org.junit.Test;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.InvalidRequest;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.SuperuserPbaAccountValidator;
 
 public class SuperuserPbaAccountValidatorTest {
 

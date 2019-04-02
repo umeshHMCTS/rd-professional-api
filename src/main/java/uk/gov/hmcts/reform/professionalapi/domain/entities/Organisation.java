@@ -30,6 +30,9 @@ public class Organisation {
     @OneToMany(mappedBy = "organisation")
     private List<PaymentAccount> paymentAccounts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "organisation")
+    private List<Domain> domains = new ArrayList<>();
+
     @Column(name = "STATUS")
     private String status;
 
@@ -75,5 +78,21 @@ public class Organisation {
 
     public String getStatus() {
         return status;
+    }
+
+    public void addDomain(Domain domain) {
+        this.domains.add(domain);
+    }
+
+    public List<Domain> getDomains() {
+        return domains;
+    }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public LocalDateTime getCreated() {
+        return created;
     }
 }

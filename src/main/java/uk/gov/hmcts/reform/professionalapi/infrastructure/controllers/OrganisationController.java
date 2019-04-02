@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.professionalapi.domain.service.OrganisationService;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
-import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequestValidator;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.OrganisationCreationRequestValidator;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.response.OrganisationResponse;
 
 @RequestMapping(

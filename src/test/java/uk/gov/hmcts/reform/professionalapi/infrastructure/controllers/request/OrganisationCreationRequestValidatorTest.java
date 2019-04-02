@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.OrganisationCreationRequestValidator;
+import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.validation.OrganisationRequestValidator;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OrganisationCreationRequestValidatorTest {
