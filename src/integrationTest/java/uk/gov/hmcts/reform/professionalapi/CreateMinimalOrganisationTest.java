@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
+import uk.gov.hmcts.reform.professionalapi.domain.entities.Domain;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.professionalapi.domain.entities.ProfessionalUser;
 import uk.gov.hmcts.reform.professionalapi.infrastructure.controllers.request.OrganisationCreationRequest;
@@ -29,8 +30,11 @@ public class CreateMinimalOrganisationTest extends Service2ServiceEnabledIntegra
                         .email("someone@somewhere.com")
                         .build())
                 .domains(asList(aDomainCreationRequest()
-                        .domain("somewhere.com")
-                        .build()))
+                                .domain("somewhere.com")
+                                .build(),
+                        aDomainCreationRequest()
+                                .domain("somewhereelse.com")
+                                .build()))
                 .build();
 
         Map<String, Object> response =
@@ -67,14 +71,20 @@ public class CreateMinimalOrganisationTest extends Service2ServiceEnabledIntegra
                 .isBeforeOrEqualTo(now())
                 .isAfter(now().minusMinutes(1));
 
-        assertThat(persistedOrganisation.getDomains().size()).isEqualTo(1);
-        assertThat(persistedOrganisation.getDomains().get(0).getName()).isEqualTo("somewhere.com");
-        assertThat(persistedOrganisation.getDomains().get(0).getCreated())
-                .isBeforeOrEqualTo(now())
-                .isAfter(now().minusMinutes(1));
-        assertThat(persistedOrganisation.getDomains().get(0).getLastUpdated())
-                .isBeforeOrEqualTo(now())
-                .isAfter(now().minusMinutes(1));
+        assertThat(persistedOrganisation.getDomains().size()).isEqualTo(2);
+        assertThat(persistedOrganisation.getDomains())
+                .extracting("name")
+                .containsExactlyInAnyOrder("somewhere.com", "somewhereelse.com");
+        persistedOrganisation.getDomains().forEach(
+                domain -> assertThat(domain.getCreated())
+                        .isBeforeOrEqualTo(now())
+                        .isAfter(now().minusMinutes(1))
+        );
+        persistedOrganisation.getDomains().forEach(
+                domain -> assertThat(domain.getLastUpdated())
+                        .isBeforeOrEqualTo(now())
+                        .isAfter(now().minusMinutes(1))
+        );
 
         assertThat(organisationNameFromResponse).isEqualTo("some-org-name");
         assertThat((List<String>) response.get("userIds"))

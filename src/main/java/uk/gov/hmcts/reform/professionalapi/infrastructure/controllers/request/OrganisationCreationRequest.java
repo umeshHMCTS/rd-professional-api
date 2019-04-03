@@ -20,9 +20,9 @@ public class OrganisationCreationRequest {
 
     @NotNull
     @Size(min = 1)
-    private List<DomainCreationRequest> domains;
+    private final List<DomainCreationRequest> domains;
 
-    private List<PbaAccountCreationRequest> pbaAccounts;
+    private final List<PbaAccountCreationRequest> pbaAccounts;
 
     @JsonCreator
     public OrganisationCreationRequest(
