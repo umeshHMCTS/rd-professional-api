@@ -14,7 +14,7 @@ public class PaymentAccountTest {
 
         paymentAccount.addUser(user);
 
-        assertThat(paymentAccount.getUser().get(0)).isSameAs(user);
+        assertThat(paymentAccount.getUsers().get(0)).isSameAs(user);
     }
 
     @Test

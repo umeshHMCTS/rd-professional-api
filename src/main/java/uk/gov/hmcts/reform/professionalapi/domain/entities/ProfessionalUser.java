@@ -1,6 +1,10 @@
 package uk.gov.hmcts.reform.professionalapi.domain.entities;
 
+import static javax.persistence.CascadeType.*;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.*;
 import lombok.NoArgsConstructor;
@@ -33,9 +37,13 @@ public class ProfessionalUser {
     @JoinColumn(name = "ORGANISATION_ID", nullable = false)
     private Organisation organisation;
 
-    @ManyToOne
-    @JoinColumn(name = "PAYMENT_ACCOUNT_ID")
-    private  PaymentAccount paymentAccount;
+    @JoinTable(
+            name = "payment_account_to_professional_user",
+            joinColumns = { @JoinColumn(name = "PROFESSIONAL_USER", referencedColumnName = "ID") },
+            inverseJoinColumns = { @JoinColumn(name = "PAYMENT_ACCOUNT", referencedColumnName = "ID") }
+    )
+    @ManyToMany(cascade = {PERSIST, MERGE})
+    private List<PaymentAccount> paymentAccounts = new ArrayList<>();
 
     @LastModifiedDate
     @Column(name = "LAST_UPDATED")
@@ -87,7 +95,11 @@ public class ProfessionalUser {
         return created;
     }
 
-    public PaymentAccount getPaymentAccount() {
-        return paymentAccount;
+    public List<PaymentAccount> getPaymentAccounts() {
+        return paymentAccounts;
+    }
+
+    public void addPaymentAccount(PaymentAccount paymentAccount) {
+        this.paymentAccounts.add(paymentAccount);
     }
 }

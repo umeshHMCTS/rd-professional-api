@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.professionalapi.domain.entities;
 
+import static javax.persistence.CascadeType.*;
 import static javax.persistence.GenerationType.AUTO;
 
 import java.time.LocalDateTime;
@@ -28,8 +29,10 @@ public class PaymentAccount {
     @JoinColumn(name = "ORGANISATION_ID")
     private Organisation organisation;
 
-    @OneToMany(mappedBy = "paymentAccount")
-    private List<ProfessionalUser> users;
+    @ManyToMany(
+            mappedBy = "paymentAccounts",
+            cascade = {PERSIST, MERGE})
+    private List<ProfessionalUser> users = new ArrayList<>();
 
     @LastModifiedDate
     @Column(name = "LAST_UPDATED")
@@ -48,9 +51,6 @@ public class PaymentAccount {
     }
 
     public void addUser(ProfessionalUser user) {
-        if (users == null) {
-            users = new ArrayList<>();
-        }
         this.users.add(user);
     }
 
@@ -66,7 +66,7 @@ public class PaymentAccount {
         return organisation;
     }
 
-    public List<ProfessionalUser> getUser() {
+    public List<ProfessionalUser> getUsers() {
         return users;
     }
 }
