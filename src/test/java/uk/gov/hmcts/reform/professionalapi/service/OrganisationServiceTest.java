@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreati
 import uk.gov.hmcts.reform.professionalapi.controller.request.PbaAccountCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.request.UserCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationResponse;
+import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationsDetailResponse;
 import uk.gov.hmcts.reform.professionalapi.domain.ContactInformation;
 import uk.gov.hmcts.reform.professionalapi.domain.DxAddress;
 import uk.gov.hmcts.reform.professionalapi.domain.Organisation;
@@ -55,6 +56,7 @@ public class OrganisationServiceTest {
     private ContactInformationCreationRequest contactInformationCreationRequest;
     private OrganisationCreationRequest organisationCreationRequest;
     private OrganisationService organisationService;
+    private List<Organisation> organisations;
 
     @Before
     public void setUp() {
@@ -104,6 +106,7 @@ public class OrganisationServiceTest {
                         "some-org-name","sra-id",Boolean.FALSE,"company-number","company-url",
                         superUser,
                         pbaAccountCreationRequests, contactInformationCreationRequests);
+        organisations = new ArrayList<Organisation>();
 
         when(organisation.getId()).thenReturn(UUID.randomUUID());
 
@@ -126,6 +129,10 @@ public class OrganisationServiceTest {
 
         when(dxAddressCreationRequest.getIsDxRequestValid())
                 .thenReturn(true);
+
+        when(organisationRepository.findAll())
+                .thenReturn(organisations);
+
     }
 
     @Test
@@ -160,5 +167,18 @@ public class OrganisationServiceTest {
         verify(
                 organisation,
                 times(1)).addPaymentAccount(any(PaymentAccount.class));
+    }
+
+    @Test
+    public void retrieve_an_organisations() {
+
+        OrganisationsDetailResponse organisationDetailResponse =
+                organisationService.retrieveOrganisations();
+
+        assertThat(organisationDetailResponse).isNotNull();
+
+        verify(
+                organisationRepository,
+                times(1)).findAll();
     }
 }

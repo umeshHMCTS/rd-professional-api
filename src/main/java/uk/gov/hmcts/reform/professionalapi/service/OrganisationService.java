@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreati
 import uk.gov.hmcts.reform.professionalapi.controller.request.PbaAccountCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.request.UserCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationResponse;
+import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationsDetailResponse;
 import uk.gov.hmcts.reform.professionalapi.domain.ContactInformation;
 import uk.gov.hmcts.reform.professionalapi.domain.DxAddress;
 import uk.gov.hmcts.reform.professionalapi.domain.Organisation;
@@ -141,6 +142,12 @@ public class OrganisationService {
                 }
             });
         }
+    }
+
+    public OrganisationsDetailResponse retrieveOrganisations() {
+        List<Organisation> organisations = organisationRepository.findAll();
+        log.debug("Received new organisation details...");
+        return new OrganisationsDetailResponse(organisations);
     }
 }
 
