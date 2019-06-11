@@ -102,14 +102,13 @@ public class OrganisationController {
     }
 
     @ApiOperation(
-            value = "Retrieves organisation details",
+            value = "Retrieves all organisation details unless status or id is given",
             authorizations = {
                     @Authorization(value = "ServiceAuthorization")
             }
     )
     @ApiParam(
-            allowEmptyValue = true,
-            required = true
+            allowEmptyValue = true
     )
     @ApiResponses({
             @ApiResponse(
@@ -119,19 +118,36 @@ public class OrganisationController {
             )
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> retrieveOrganisations(@RequestParam(required = false) String id) {
+    public ResponseEntity<?> retrieveOrganisations(@RequestParam(required = false) String id, @RequestParam(required = false) String status) {
         Object organisationResponse;
-        if (id == null) {
-            log.info("Received request to retrieve all organisations");
-            organisationResponse =
-                    organisationService.retrieveOrganisations();
-        } else {
+        if (status.isEmpty() && !id.isEmpty()) {
             log.info("Received request to retrieve organisation with ID " + id);
 
             organisationCreationRequestValidator.validateOrganisationIdentifier(id);
             organisationResponse =
                     organisationService.retrieveOrganisation(id);
+
+        } else if (!status.isEmpty() && id.isEmpty()) {
+            log.info("Received request to retrieve all organisations by given status");
+
+            OrganisationsDetailResponse organisationsDetailResponse;
+            if (organisationCreationRequestValidator.contains(status.toUpperCase())) {
+
+                organisationsDetailResponse =
+                        organisationService.findByOrganisationStatus(OrganisationStatus.valueOf(status.toUpperCase()));
+            } else {
+                log.error("Invalid Request param for status field");
+                throw new InvalidRequest("400");
+            }
+            log.info("Received response for status...");
+            return ResponseEntity.status(200).body(organisationsDetailResponse);
+
+        } else {
+            log.info("Received request to retrieve all organisations");
+            organisationResponse =
+                    organisationService.retrieveOrganisations();
         }
+
 
         log.debug("Received response to retrieve organisation details" + organisationResponse);
         return ResponseEntity
@@ -213,10 +229,10 @@ public class OrganisationController {
     }
 
     @ApiOperation(
-        value = "Updates an organisation",
-        authorizations = {
-            @Authorization(value = "ServiceAuthorization")
-        })
+            value = "Updates an organisation",
+            authorizations = {
+                    @Authorization(value = "ServiceAuthorization")
+            })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Updated an organisation"),
             @ApiResponse(code = 404, message = "If Organisation is not found"),
@@ -243,59 +259,27 @@ public class OrganisationController {
         return ResponseEntity.status(200).build();
     }
 
+
+//    public ResponseEntity<OrganisationsDetailResponse> getAllOrganisationDetailsByStatus(@NotNull @RequestParam("status") String status) {
+//
+//        OrganisationsDetailResponse organisationsDetailResponse;
+//        if (organisationCreationRequestValidator.contains(status.toUpperCase())) {
+//
+//            organisationsDetailResponse =
+//                    organisationService.findByOrganisationStatus(OrganisationStatus.valueOf(status.toUpperCase()));
+//        } else {
+//            log.error("Invalid Request param for status field");
+//            throw new InvalidRequest("400");
+//        }
+//        log.info("Received response for status...");
+//        return ResponseEntity.status(200).body(organisationsDetailResponse);
+//    }
+
     @ApiOperation(
-            value = "Retrieves the organisation details with the given status ",
+            value = "Add a user to an organisation",
             authorizations = {
                     @Authorization(value = "ServiceAuthorization")
             }
-    )
-    @ApiParam(
-            name = "status",
-            type = "string",
-            value = "The organisation details of the status to return",
-            required = true
-
-    )
-
-    @ApiResponses({
-            @ApiResponse(
-                    code = 200,
-                    message = "A representation of a organisation ",
-                    response = OrganisationsDetailResponse.class
-            ),
-            @ApiResponse(
-                    code = 200,
-                    message = "No organisation details found with the provided status "
-            ),
-            @ApiResponse(
-                    code = 400,
-                    message = "Invalid status provided for an organisation"
-            )
-    })
-    @GetMapping(
-            params = {"status"},
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-    )
-    public ResponseEntity<OrganisationsDetailResponse> getAllOrganisationDetailsByStatus(@NotNull @RequestParam("status") String status) {
-
-        OrganisationsDetailResponse organisationsDetailResponse;
-        if (organisationCreationRequestValidator.contains(status.toUpperCase())) {
-
-            organisationsDetailResponse =
-                    organisationService.findByOrganisationStatus(OrganisationStatus.valueOf(status.toUpperCase()));
-        } else {
-            log.error("Invalid Request param for status field");
-            throw new InvalidRequest("400");
-        }
-        log.info("Received response for status...");
-        return ResponseEntity.status(200).body(organisationsDetailResponse);
-    }
-
-    @ApiOperation(
-        value = "Add a user to an organisation",
-        authorizations = {
-            @Authorization(value = "ServiceAuthorization")
-        }
     )
     @ApiResponses({
             @ApiResponse(
@@ -336,4 +320,7 @@ public class OrganisationController {
                     .body(newUserResponse);
         }
     }
+
+
+
 }
