@@ -13,5 +13,7 @@ public interface ProfessionalUserService {
     ProfessionalUser findProfessionalUserByEmailAddress(String email);
 
     List<ProfessionalUser> findProfessionalUsersByOrganisation(Organisation existingOrganisation, boolean showDeleted);
+
+    void persistUser(ProfessionalUser professionalUser);
 }
 

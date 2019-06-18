@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.professionalapi.controller;
 
+import static uk.gov.hmcts.reform.professionalapi.controller.request.UserProfileCreationRequest.anUserProfileCreationRequest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -15,7 +18,9 @@ import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,20 +39,25 @@ import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreati
 import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreationRequestValidator;
 import uk.gov.hmcts.reform.professionalapi.controller.request.UpdateOrganisationRequestValidator;
 import uk.gov.hmcts.reform.professionalapi.controller.request.UserCreationRequestValidator;
+import uk.gov.hmcts.reform.professionalapi.controller.request.UserProfileCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.response.NewUserResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationPbaResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.response.OrganisationsDetailResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.response.ProfessionalUsersResponse;
+import uk.gov.hmcts.reform.professionalapi.controller.response.UserProfileCreateResponse;
+import uk.gov.hmcts.reform.professionalapi.domain.LanguagePreference;
 import uk.gov.hmcts.reform.professionalapi.domain.Organisation;
 import uk.gov.hmcts.reform.professionalapi.domain.OrganisationStatus;
 import uk.gov.hmcts.reform.professionalapi.domain.PrdEnum;
 import uk.gov.hmcts.reform.professionalapi.domain.ProfessionalUser;
+import uk.gov.hmcts.reform.professionalapi.domain.UserCategory;
+import uk.gov.hmcts.reform.professionalapi.domain.UserType;
+import uk.gov.hmcts.reform.professionalapi.feign.UserProfileFeignClient;
 import uk.gov.hmcts.reform.professionalapi.service.OrganisationService;
 import uk.gov.hmcts.reform.professionalapi.service.PaymentAccountService;
 import uk.gov.hmcts.reform.professionalapi.service.PrdEnumService;
 import uk.gov.hmcts.reform.professionalapi.service.ProfessionalUserService;
-
 
 @RequestMapping(
         path = "v1/organisations",
@@ -65,6 +75,9 @@ public class OrganisationController {
 
     private UpdateOrganisationRequestValidator updateOrganisationRequestValidator;
     private OrganisationCreationRequestValidator organisationCreationRequestValidator;
+
+    @Autowired
+    private UserProfileFeignClient userProfileFeignClient;
 
     @ApiOperation(
             value = "Creates an organisation",
@@ -236,10 +249,51 @@ public class OrganisationController {
         Organisation existingOrganisation = organisationService.getOrganisationByOrganisationIdentifier(organisationIdentifier);
         updateOrganisationRequestValidator.validateStatus(existingOrganisation, organisationCreationRequest.getStatus(), organisationIdentifier);
 
-        OrganisationResponse organisationResponse =
+        ProfessionalUser professionalUser = existingOrganisation.getUsers().get(0);
+        if (existingOrganisation.getStatus().isPending() && organisationCreationRequest.getStatus().isActive()) {
+            log.info("Organisation is getting activated");
+            UserProfileCreateResponse userProfileCreateResponse = createUserProfileFor(existingOrganisation, professionalUser);
+            if (userProfileCreateResponse != null && userProfileCreateResponse.getIdamRegistrationResponse() == HttpStatus.CREATED.value()) {
+                professionalUser.setUserIdentifier(userProfileCreateResponse.getIdamId());
+                professionalUserService.persistUser(professionalUser);
                 organisationService.updateOrganisation(organisationCreationRequest, organisationIdentifier);
-        log.info("Received response to update organisation..." + organisationResponse);
-        return ResponseEntity.status(200).build();
+                return ResponseEntity.status(200).build();
+            } else {
+                if (userProfileCreateResponse == null) {
+                    log.error("User Profile failed!!");
+                } else {
+                    log.error("Idam returned status code : " + userProfileCreateResponse.getIdamRegistrationResponse());
+                }
+                return ResponseEntity.status(500).build();
+            }
+        } else {
+            organisationService.updateOrganisation(organisationCreationRequest, organisationIdentifier);
+            return ResponseEntity.status(200).build();
+        }
+    }
+
+    private UserProfileCreateResponse createUserProfileFor(Organisation existingOrganisation, ProfessionalUser professionalUser) {
+        log.info("Creating user...");
+        UserProfileCreateResponse userProfileCreateResponse = null;
+        UserProfileCreationRequest userCreationRequest = anUserProfileCreationRequest()
+                .email(professionalUser.getEmailAddress())
+                .firstName(professionalUser.getFirstName())
+                .lastName(professionalUser.getLastName())
+                .languagePreference(LanguagePreference.EN)
+                .userCategory(UserCategory.PROFESSIONAL)
+                .userType(UserType.EXTERNAL)
+                .idamRoles(prdEnumService.getPrdEnumByEnumType("PRD_ROLE"))
+                .build();
+
+        ResponseEntity responseEntity = userProfileFeignClient.createUserProfile(userCreationRequest);
+
+        if (HttpStatus.CREATED == responseEntity.getStatusCode()) {
+            userProfileCreateResponse = new ObjectMapper().convertValue(responseEntity.getBody(), UserProfileCreateResponse.class);
+            log.info("UserProfile Response success. IDAM_ID:" + userProfileCreateResponse.getIdamId() + " IDAM_REGISTRATION_CODE:" + userProfileCreateResponse.getIdamRegistrationResponse());
+        } else {
+            log.info("UserProfile returned status code = " + responseEntity.getStatusCode());
+        }
+        return userProfileCreateResponse;
     }
 
     @ApiOperation(
