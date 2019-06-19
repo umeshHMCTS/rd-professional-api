@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.professionalapi.controller;
 
-import static uk.gov.hmcts.reform.professionalapi.controller.request.UserProfileCreationRequest.anUserProfileCreationRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -9,6 +7,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -23,6 +22,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +51,7 @@ import uk.gov.hmcts.reform.professionalapi.domain.Organisation;
 import uk.gov.hmcts.reform.professionalapi.domain.OrganisationStatus;
 import uk.gov.hmcts.reform.professionalapi.domain.PrdEnum;
 import uk.gov.hmcts.reform.professionalapi.domain.ProfessionalUser;
+import uk.gov.hmcts.reform.professionalapi.domain.ProfessionalUserStatus;
 import uk.gov.hmcts.reform.professionalapi.domain.UserCategory;
 import uk.gov.hmcts.reform.professionalapi.domain.UserType;
 import uk.gov.hmcts.reform.professionalapi.feign.UserProfileFeignClient;
@@ -252,7 +253,7 @@ public class OrganisationController {
         ProfessionalUser professionalUser = existingOrganisation.getUsers().get(0);
         if (existingOrganisation.getStatus().isPending() && organisationCreationRequest.getStatus().isActive()) {
             log.info("Organisation is getting activated");
-            UserProfileCreateResponse userProfileCreateResponse = createUserProfileFor(existingOrganisation, professionalUser);
+            UserProfileCreateResponse userProfileCreateResponse = createUserProfileFor(professionalUser, null);
             if (userProfileCreateResponse != null && userProfileCreateResponse.getIdamRegistrationResponse() == HttpStatus.CREATED.value()) {
                 professionalUser.setUserIdentifier(userProfileCreateResponse.getIdamId());
                 professionalUserService.persistUser(professionalUser);
@@ -272,18 +273,18 @@ public class OrganisationController {
         }
     }
 
-    private UserProfileCreateResponse createUserProfileFor(Organisation existingOrganisation, ProfessionalUser professionalUser) {
+    private UserProfileCreateResponse createUserProfileFor(ProfessionalUser professionalUser, List<String> roles) {
         log.info("Creating user...");
         UserProfileCreateResponse userProfileCreateResponse = null;
-        UserProfileCreationRequest userCreationRequest = anUserProfileCreationRequest()
-                .email(professionalUser.getEmailAddress())
-                .firstName(professionalUser.getFirstName())
-                .lastName(professionalUser.getLastName())
-                .languagePreference(LanguagePreference.EN)
-                .userCategory(UserCategory.PROFESSIONAL)
-                .userType(UserType.EXTERNAL)
-                .idamRoles(prdEnumService.getPrdEnumByEnumType("PRD_ROLE"))
-                .build();
+        List<String> userRoles = CollectionUtils.isEmpty(roles) ? prdEnumService.getPrdEnumByEnumType("PRD_ROLE") : roles;
+        UserProfileCreationRequest userCreationRequest = new UserProfileCreationRequest(
+                professionalUser.getEmailAddress(),
+                professionalUser.getFirstName(),
+                professionalUser.getLastName(),
+                LanguagePreference.EN,
+                UserCategory.PROFESSIONAL,
+                UserType.EXTERNAL,
+                userRoles);
 
         ResponseEntity responseEntity = userProfileFeignClient.createUserProfile(userCreationRequest);
 
@@ -370,23 +371,36 @@ public class OrganisationController {
         log.info("Received request to add a new user to an organisation..." + organisationIdentifier);
 
         organisationCreationRequestValidator.validateOrganisationIdentifier(organisationIdentifier);
-
         Organisation existingOrganisation = organisationService.getOrganisationByOrganisationIdentifier(organisationIdentifier);
         updateOrganisationRequestValidator.validateStatus(existingOrganisation, null, organisationIdentifier);
 
         List<PrdEnum> prdEnumList = prdEnumService.findAllPrdEnums();
-
         if (UserCreationRequestValidator.contains(newUserCreationRequest.getRoles(), prdEnumList).isEmpty()) {
             log.error("Invalid/No user role(s) provided");
             throw new InvalidRequest("404");
         } else {
-            NewUserResponse newUserResponse =
-                    professionalUserService.addNewUserToAnOrganisation(newUserCreationRequest, organisationIdentifier);
+            ProfessionalUser newUser = new ProfessionalUser(
+                    newUserCreationRequest.getFirstName(),
+                    newUserCreationRequest.getLastName(),
+                    newUserCreationRequest.getEmail(),
+                    ProfessionalUserStatus.PENDING,
+                    existingOrganisation);
+            List<String> roles = newUserCreationRequest.getRoles();
+            UserProfileCreateResponse userProfileCreateResponse = createUserProfileFor(newUser, roles);
+            if (userProfileCreateResponse != null && userProfileCreateResponse.isUserCreated()) {
+                newUser.setUserIdentifier(userProfileCreateResponse.getIdamId());
+                NewUserResponse newUserResponse =
+                        professionalUserService.addNewUserToAnOrganisation(newUser, existingOrganisation, roles);
 
-            log.info("Received request to add a new user to an organisation..." + newUserResponse);
-            return ResponseEntity
-                    .status(201)
-                    .body(newUserResponse);
+                log.info("New user created successfully to an organisation...");
+                return ResponseEntity
+                        .status(201)
+                        .body(newUserResponse);
+            } else {
+                return ResponseEntity
+                        .status(500)
+                        .build();
+            }
         }
     }
 }

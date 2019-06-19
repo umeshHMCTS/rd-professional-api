@@ -94,6 +94,7 @@ public class ProfessionalUserController {
             showDeletedFlag = true;
         }
 
+        findUserFromUserProfile();
         return ResponseEntity
                 .status(200)
                 .body(new ProfessionalUsersEntityResponse(professionalUserService.findProfessionalUsersByOrganisation(existingOrganisation, showDeletedFlag)));

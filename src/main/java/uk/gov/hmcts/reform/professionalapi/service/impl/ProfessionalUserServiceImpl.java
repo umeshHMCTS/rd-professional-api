@@ -48,21 +48,13 @@ public class ProfessionalUserServiceImpl implements ProfessionalUserService {
 
     @Transactional
     @Override
-    public NewUserResponse addNewUserToAnOrganisation(NewUserCreationRequest newUserCreationRequest, String organisationIdentifier) {
-        Organisation theOrganisation = organisationRepository.findByOrganisationIdentifier(organisationIdentifier);
-
-        ProfessionalUser newUser = new ProfessionalUser(
-                newUserCreationRequest.getFirstName(),
-                newUserCreationRequest.getLastName(),
-                newUserCreationRequest.getEmail(),
-                ProfessionalUserStatus.PENDING,
-                theOrganisation);
+    public NewUserResponse addNewUserToAnOrganisation(ProfessionalUser newUser, Organisation existingOrganisation, List<String> roles) {
 
         ProfessionalUser persistedNewUser = professionalUserRepository.save(newUser);
 
-        userAttributeService.addUserAttributesToUser(persistedNewUser, newUserCreationRequest.getRoles());
+        userAttributeService.addUserAttributesToUser(persistedNewUser, roles);
 
-        theOrganisation.addProfessionalUser(persistedNewUser);
+        existingOrganisation.addProfessionalUser(persistedNewUser);
 
         return new NewUserResponse(persistedNewUser);
     }

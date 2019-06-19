@@ -4,13 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import lombok.Builder;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.professionalapi.domain.LanguagePreference;
 import uk.gov.hmcts.reform.professionalapi.domain.UserCategory;
 import uk.gov.hmcts.reform.professionalapi.domain.UserType;
 
-@Builder(builderMethodName = "anUserProfileCreationRequest")
 public class UserProfileCreationRequest  {
 
     @NotNull
@@ -28,7 +26,7 @@ public class UserProfileCreationRequest  {
 
     @NotNull
     private UserType userType;
-    private List<String> idamRoles;
+    private List<String> roles;
 
     @JsonCreator
     public UserProfileCreationRequest(@JsonProperty(value = "email") String email,
@@ -37,7 +35,7 @@ public class UserProfileCreationRequest  {
                                       @JsonProperty(value = "languagePreference") LanguagePreference languagePreference,
                                       @JsonProperty(value = "userCategory") UserCategory userCategory,
                                       @JsonProperty(value = "userType") UserType userType,
-                                      @JsonProperty(value = "idamRoles") List<String> idamRoles) {
+                                      @JsonProperty(value = "roles") List<String> roles) {
 
         if (email == null) {
             throw new InvalidRequest("email must not be null");
@@ -49,7 +47,7 @@ public class UserProfileCreationRequest  {
             throw new InvalidRequest("userCategory must not be null");
         } else if (userType == null) {
             throw new InvalidRequest("userType must not be null");
-        } else if (CollectionUtils.isEmpty(idamRoles)) {
+        } else if (CollectionUtils.isEmpty(roles)) {
             throw new InvalidRequest("at least one IDAM roles required");
         }
 
@@ -59,7 +57,7 @@ public class UserProfileCreationRequest  {
         this.languagePreference = languagePreference;
         this.userCategory = userCategory;
         this.userType = userType;
-        this.idamRoles = idamRoles;
+        this.roles = roles;
     }
 
     public String getEmail() {
@@ -86,7 +84,7 @@ public class UserProfileCreationRequest  {
         return userType;
     }
 
-    public List<String> getIdamRoles() {
-        return idamRoles;
+    public List<String> getRoles() {
+        return roles;
     }
 }
