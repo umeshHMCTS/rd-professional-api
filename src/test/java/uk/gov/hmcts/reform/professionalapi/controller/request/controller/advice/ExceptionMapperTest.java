@@ -11,7 +11,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.reform.professionalapi.controller.advice.ExceptionMapper;
+
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExceptionMapperTest {
@@ -64,6 +67,18 @@ public class ExceptionMapperTest {
                 exceptionMapper.handleHttpMediaTypeNotSupported(exception);
 
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+
+    }
+
+    @Test
+    public void should_handle_forbidden_error_exception() {
+
+        AccessDeniedException exception = mock(AccessDeniedException.class);
+
+        ResponseEntity<Object> responseEntity =
+                exceptionMapper.handleForbiddenException(exception);
+
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
 
     }
 

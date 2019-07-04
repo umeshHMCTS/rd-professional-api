@@ -11,7 +11,9 @@ services:
     image: hmcts/rd-professional-api
     container_name: rd-professional-api
     environment:
-      - JAVA_OPTS= ${JAVA_OPTS}
+      - JAVA_OPTS= ${JAVA_OPTS} -Dhttps.proxyHost=proxyout.reform.hmcts.net -Dhttps.proxyPort=8080
+      - https.proxyHost=proxyout.reform.hmcts.net
+      - https.proxyPort=8080
       - POSTGRES_USERNAME=dbrefdata
       - POSTGRES_PASSWORD=dbrefdata
       - POSTGRES_HOST=rd-professional-db
@@ -52,13 +54,13 @@ services:
 
   service-auth-provider-api:
     image: hmcts/service-auth-provider-app
-    container_name: service-auth-provider-api
+    container_name: rd-prof-service-auth-provider-api
     healthcheck:
       interval: 10s
       timeout: 10s
       retries: 10
     ports:
-      - 8502:8080
+      - 8503:8080
     environment:
       JAVA_OPTS: -Xmx384m
       SERVER_PORT: 8080
@@ -67,7 +69,7 @@ services:
 
   service-token-provider:
     image: hmcts/service-token-provider
-    container_name: service-token-provider
+    container_name: rd-prof-service-token-provider
     environment:
       - S2S_URL=http://service-auth-provider-api:8080
       - S2S_MICROSERVICE=rd_professional_api
