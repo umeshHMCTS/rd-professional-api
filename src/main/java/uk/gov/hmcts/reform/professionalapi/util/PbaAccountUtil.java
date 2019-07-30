@@ -55,7 +55,11 @@ public interface PbaAccountUtil {
 
         List<PaymentAccount> paymentAccountsFromOrg = new ArrayList<>();
 
-        paymentAccountsFromOrg.addAll(paymentAccounts);
+        if (!paymentAccounts.isEmpty()) {
+
+             paymentAccountsFromOrg.addAll(paymentAccounts);
+
+        }
         return paymentAccounts;
     }
 
