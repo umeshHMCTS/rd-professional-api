@@ -89,12 +89,12 @@ public class OrganisationServiceImpl implements OrganisationService {
             OrganisationCreationRequest organisationCreationRequest) {
 
         Organisation newOrganisation = new Organisation(
-                PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getName()),
+                organisationCreationRequest.getName(),
                 OrganisationStatus.PENDING,
-                PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getSraId()),
-                PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getCompanyNumber()),
+                organisationCreationRequest.getSraId(),
+                organisationCreationRequest.getCompanyNumber(),
                 organisationCreationRequest.getSraRegulated(),
-                PbaAccountUtil.removeAllSpaces(organisationCreationRequest.getCompanyUrl())
+                organisationCreationRequest.getCompanyUrl()
         );
 
         Organisation organisation = saveOrganisation(newOrganisation);
@@ -159,9 +159,9 @@ public class OrganisationServiceImpl implements OrganisationService {
             throw new InvalidRequest("Email cannot be null");
         }
         ProfessionalUser newProfessionalUser = new ProfessionalUser(
-                PbaAccountUtil.removeEmptySpaces(userCreationRequest.getFirstName()),
-                PbaAccountUtil.removeEmptySpaces(userCreationRequest.getLastName()),
-                PbaAccountUtil.removeAllSpaces(userCreationRequest.getEmail().toLowerCase()),
+                userCreationRequest.getFirstName(),
+                userCreationRequest.getLastName(),
+                userCreationRequest.getEmail().toLowerCase(),
                 organisation);
 
         ProfessionalUser persistedSuperUser = professionalUserRepository.save(newProfessionalUser);
@@ -182,13 +182,13 @@ public class OrganisationServiceImpl implements OrganisationService {
         if (contactInformationCreationRequest != null) {
             contactInformationCreationRequest.forEach(contactInfo -> {
                 ContactInformation newContactInformation = new ContactInformation(
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getAddressLine1()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getAddressLine2()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getAddressLine3()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getTownCity()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getCounty()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getCountry()),
-                        PbaAccountUtil.removeEmptySpaces(contactInfo.getPostCode()),
+                        contactInfo.getAddressLine1(),
+                        contactInfo.getAddressLine2(),
+                        contactInfo.getAddressLine3(),
+                        contactInfo.getTownCity(),
+                        contactInfo.getCounty(),
+                        contactInfo.getCountry(),
+                        contactInfo.getPostCode(),
                         organisation);
 
                 ContactInformation contactInformation = contactInformationRepository.save(newContactInformation);
@@ -205,8 +205,8 @@ public class OrganisationServiceImpl implements OrganisationService {
         if (dxAddressCreationRequest != null) {
             dxAddressCreationRequest.forEach(dxAdd -> {
                 DxAddress dxAddress = new DxAddress(
-                        PbaAccountUtil.removeEmptySpaces(dxAdd.getDxNumber()),
-                        PbaAccountUtil.removeEmptySpaces(dxAdd.getDxExchange()),
+                        dxAdd.getDxNumber(),
+                        dxAdd.getDxExchange(),
                         contactInformation);
                 dxAddress = dxAddressRepository.save(dxAddress);
                 contactInformation.addDxAddress(dxAddress);
@@ -256,12 +256,12 @@ public class OrganisationServiceImpl implements OrganisationService {
         Organisation organisation = organisationRepository.findByOrganisationIdentifier(organisationIdentifier);
 
         log.info("Into update Organisation service");
-        organisation.setName(PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getName()));
+        organisation.setName(organisationCreationRequest.getName());
         organisation.setStatus(OrganisationStatus.valueOf(organisationCreationRequest.getStatus()));
-        organisation.setSraId(PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getSraId()));
-        organisation.setCompanyNumber(PbaAccountUtil.removeEmptySpaces(organisationCreationRequest.getCompanyNumber()));
+        organisation.setSraId(organisationCreationRequest.getSraId());
+        organisation.setCompanyNumber(organisationCreationRequest.getCompanyNumber());
         organisation.setSraRegulated(organisationCreationRequest.getSraRegulated());
-        organisation.setCompanyUrl(PbaAccountUtil.removeAllSpaces(organisationCreationRequest.getCompanyUrl()));
+        organisation.setCompanyUrl(organisationCreationRequest.getCompanyUrl());
         organisationRepository.save(organisation);
         log.info("Update Organisation service done...");
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -82,21 +83,19 @@ public class OrganisationCreationRequestValidator {
 
             for (String paymentAccount : paymentAccounts) {
 
-                if (isEmptyValue(paymentAccount)) {
+                if (StringUtils.isEmpty(paymentAccount)) {
 
                     throw new InvalidRequest("Empty paymentAccount value" + paymentAccount);
                 }
-
             }
         }
-
     }
 
     public void requestValues(String... values) {
 
         for (String value : values) {
 
-            if (isEmptyValue(value)) {
+            if (StringUtils.isEmpty(value)) {
                 throw new InvalidRequest("Empty input value" + value);
             }
         }
@@ -108,9 +107,9 @@ public class OrganisationCreationRequestValidator {
 
             for (ContactInformationCreationRequest contactInformation : contactInformations) {
 
-                if (isEmptyValue(contactInformation.getAddressLine1()) || isEmptyValue(contactInformation.getAddressLine2())
-                        || isEmptyValue(contactInformation.getAddressLine3()) || isEmptyValue(contactInformation.getCountry())
-                        || isEmptyValue(contactInformation.getPostCode()) || isEmptyValue(contactInformation.getTownCity())) {
+                if (StringUtils.isEmpty(contactInformation.getAddressLine1()) || StringUtils.isEmpty(contactInformation.getAddressLine2())
+                        || StringUtils.isEmpty(contactInformation.getAddressLine3()) || StringUtils.isEmpty(contactInformation.getCountry())
+                        || StringUtils.isEmpty(contactInformation.getPostCode()) || StringUtils.isEmpty(contactInformation.getTownCity())) {
 
                     throw new InvalidRequest("Empty contactInformation value");
                 }
@@ -118,22 +117,13 @@ public class OrganisationCreationRequestValidator {
 
                     for (DxAddressCreationRequest dxAddress : contactInformation.getDxAddress()) {
 
-                        if (isEmptyValue(dxAddress.getDxNumber()) || !isDxNumberValid(dxAddress.getDxNumber()) || isEmptyValue(dxAddress.getDxExchange())) {
+                        if (StringUtils.isEmpty(dxAddress.getDxNumber()) || !isDxNumberValid(dxAddress.getDxNumber()) || StringUtils.isEmpty(dxAddress.getDxExchange())) {
                             throw new InvalidRequest("Invalid dxAddress value: " + dxAddress.getDxExchange() + ", DxNumber: " + dxAddress.getDxNumber());
                         }
                     }
                 }
             }
         }
-    }
-
-    public boolean isEmptyValue(String value) {
-
-        boolean isEmpty = false;
-        if (value != null && value.trim().isEmpty()) {
-            isEmpty = true;
-        }
-        return isEmpty;
     }
 
     private Boolean isDxNumberValid(String dxNumber) {

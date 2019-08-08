@@ -3,11 +3,13 @@ package uk.gov.hmcts.reform.professionalapi.controller.request;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import uk.gov.hmcts.reform.professionalapi.util.PbaAccountUtil;
 
 @Getter
 @Setter
@@ -47,14 +49,14 @@ public class OrganisationCreationRequest {
             @JsonProperty("paymentAccount") List<String> paymentAccount,
             @JsonProperty("contactInformation") List<ContactInformationCreationRequest> contactInformationRequest) {
 
-        this.name = name;
+        this.name = PbaAccountUtil.removeEmptySpaces(name);
         this.status = status;
-        this.sraId = sraId;
+        this.sraId = PbaAccountUtil.removeAllSpaces(sraId);
         this.sraRegulated = sraRegulated;
-        this.companyNumber = companyNumber;
-        this.companyUrl = companyUrl;
+        this.companyNumber = PbaAccountUtil.removeAllSpaces(companyNumber);
+        this.companyUrl = PbaAccountUtil.removeAllSpaces(companyUrl);
         this.superUser = superUser;
-        this.paymentAccount = paymentAccount;
+        this.paymentAccount = paymentAccount.stream().map(pba -> PbaAccountUtil.removeEmptySpaces(pba)).collect(Collectors.toList());
         this.contactInformation = contactInformationRequest;
     }
 }

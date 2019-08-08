@@ -39,8 +39,8 @@ public class UserAttributeServiceImpl implements UserAttributeService {
                 if (prdEnum.getEnumName().equals(role)) {
                     PrdEnum newPrdEnum = new PrdEnum(
                             prdEnum.getPrdEnumId(),
-                            PbaAccountUtil.removeEmptySpaces(prdEnum.getEnumName()),
-                            PbaAccountUtil.removeEmptySpaces(prdEnum.getEnumDescription()));
+                            prdEnum.getEnumName(),
+                            prdEnum.getEnumDescription());
                     UserAttribute userAttribute = new UserAttribute(newUser, newPrdEnum);
                     userAttributeRepository.save(userAttribute);
                 }

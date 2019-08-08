@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
@@ -14,6 +15,7 @@ import lombok.Setter;
 import uk.gov.hmcts.reform.professionalapi.domain.LanguagePreference;
 import uk.gov.hmcts.reform.professionalapi.domain.UserCategory;
 import uk.gov.hmcts.reform.professionalapi.domain.UserType;
+import uk.gov.hmcts.reform.professionalapi.util.PbaAccountUtil;
 
 @Setter
 @Getter
@@ -53,12 +55,12 @@ public class UserProfileCreationRequest  {
                                       @JsonProperty(value = "userType") UserType userType,
                                       @JsonProperty(value = "roles") List<String> roles) {
 
-        this.email = email;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.email = PbaAccountUtil.removeAllSpaces(email);
+        this.firstName = PbaAccountUtil.removeEmptySpaces(firstName);
+        this.lastName = PbaAccountUtil.removeEmptySpaces(lastName);
         this.languagePreference = languagePreference;
         this.userCategory = userCategory;
         this.userType = userType;
-        this.roles = roles;
+        this.roles =  roles.stream().map(r -> PbaAccountUtil.removeEmptySpaces(r)).collect(Collectors.toList());
     }
 }
