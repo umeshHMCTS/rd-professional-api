@@ -204,7 +204,6 @@ public abstract class SuperController {
                 UserProfileCreationResponse userProfileCreationResponse = (UserProfileCreationResponse) responseEntity.getBody();
                 log.info("Idam registration success !! idamId = " + userProfileCreationResponse.getIdamId());
                 professionalUser.setUserIdentifier(userProfileCreationResponse.getIdamId());
-                superUser.setUserIdentifier(userProfileCreationResponse.getIdamId());
                 professionalUserService.persistUser(professionalUser);
             } else {
                 log.error("Idam register user failed with status code : " + responseEntity.getStatusCode());

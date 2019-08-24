@@ -103,7 +103,9 @@ public class CreateNewUserWithRolesTest extends AuthorizationEnabledIntegrationT
         assertEquals(newUserResponse.get("userIdentifier"), userIdentifierResponse);
 
         Organisation persistedOrganisation = organisationRepository.findByOrganisationIdentifier(orgIdentifierResponse);
-        assertThat(persistedOrganisation.getUsers().size()).isEqualTo(2);
+        List<ProfessionalUser> professionalUser = professionalUserRepository.findByOrganisation(persistedOrganisation);
+
+        assertThat(professionalUser.size()).isEqualTo(2);
 
         ProfessionalUser persistedProfessionalUser = professionalUserRepository.findByUserIdentifier(UUID.fromString(userIdentifierResponse));
         assertThat(persistedProfessionalUser).isNotNull();
@@ -253,7 +255,8 @@ public class CreateNewUserWithRolesTest extends AuthorizationEnabledIntegrationT
         assertEquals(newUserResponse.get("userIdentifier"), userIdentifierResponse);
 
         Organisation persistedOrganisation = organisationRepository.findByOrganisationIdentifier(orgIdentifierResponse);
-        assertThat(persistedOrganisation.getUsers().size()).isEqualTo(2);
+        List<ProfessionalUser> professionalUser = professionalUserRepository.findByOrganisation(persistedOrganisation);
+        assertThat(professionalUser.size()).isEqualTo(2);
 
         ProfessionalUser persistedProfessionalUser = professionalUserRepository.findByUserIdentifier(UUID.fromString(userIdentifierResponse));
         assertThat(persistedProfessionalUser).isNotNull();
