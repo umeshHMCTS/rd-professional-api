@@ -318,4 +318,14 @@ public abstract class SuperController {
                 .status(responseEntity.getStatusCode().value())
                 .body(responseEntity.getBody());
     }
+
+    protected ResponseEntity<?> addRolesToOrganisation(UsersRoles usersRoles, String userId) {
+
+        ResponseEntity responseEntity = professionalUserService.addRolesToUser(usersRoles, userId);
+
+        return ResponseEntity
+                .status(responseEntity.getStatusCode().value()).build();
+
+    }
+
 }

@@ -11,23 +11,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.hmcts.reform.professionalapi.configuration.FeignInterceptorConfiguration;
 import uk.gov.hmcts.reform.professionalapi.controller.request.RetrieveUserProfilesRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.request.UserProfileCreationRequest;
+import uk.gov.hmcts.reform.professionalapi.controller.request.UsersRoles;
 
 @FeignClient(name = "UserProfileClient", url = "${userProfUrl}", configuration = FeignInterceptorConfiguration.class)
 public interface UserProfileFeignClient {
 
-    @RequestMapping(method = RequestMethod.POST, value = "/v1/userprofile")
-    @RequestLine("POST /v1/userprofile")
-    @Headers({"Authorization: {authorization}", "ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
+@RequestMapping(method = RequestMethod.POST, value = "/v1/userprofile")
+@RequestLine("POST /v1/userprofile")
+@Headers({"Authorization: {authorization}", "ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
     Response createUserProfile(@RequestBody UserProfileCreationRequest userProfileCreationRequest);
 
-    @RequestMapping(method = RequestMethod.GET, value = "/v1/userprofile", params = "userId")
-    @RequestLine("GET /v1/userprofile")
-    @Headers({"Authorization: {authorization}","ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
+@RequestMapping(method = RequestMethod.GET, value = "/v1/userprofile", params = "userId")
+@RequestLine("GET /v1/userprofile")
+@Headers({"Authorization: {authorization}","ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
     Response getUserProfileById(@RequestParam("userId") String userId);
 
-    @RequestMapping(method = RequestMethod.POST, value = "/v1/userprofile/users", params = "showdeleted")
-    @RequestLine("POST /v1/userprofile/users")
-    @Headers({"Authorization: {authorization}", "ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
+@RequestMapping(method = RequestMethod.POST, value = "/v1/userprofile/users", params = "showdeleted")
+@RequestLine("POST /v1/userprofile/users")
+@Headers({"Authorization: {authorization}", "ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
     Response getUserProfiles(@RequestBody RetrieveUserProfilesRequest retrieveUserProfilesRequest,
-                             @RequestParam(value = "showdeleted") String showDeleted,  @RequestParam(value = "rolesRequired")String rolesRequired);
+@RequestParam(value = "showdeleted") String showDeleted,  @RequestParam(value = "rolesRequired")String rolesRequired);
+
+@RequestMapping(method = RequestMethod.POST, value = "/v1/userprofile/roles")
+@RequestLine("POST /v1/userprofile/roles")
+@Headers({"Authorization: {authorization}","ServiceAuthorization: {serviceAuthorization}", "Content-Type: application/json"})
+Response modifyRoles(@RequestBody UsersRoles usersRoles,
+                     @RequestParam("userId") String userId, @RequestParam("isDelete") String isDelete);
 }

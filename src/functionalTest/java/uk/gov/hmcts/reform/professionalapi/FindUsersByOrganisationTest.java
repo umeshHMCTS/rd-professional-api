@@ -1,8 +1,13 @@
 package uk.gov.hmcts.reform.professionalapi;
 
-import io.restassured.specification.RequestSpecification;
+import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.RandomStringUtils.randomAlphabetic;
+import static uk.gov.hmcts.reform.professionalapi.controller.request.NewUserCreationRequest.aNewUserCreationRequest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import io.restassured.specification.RequestSpecification;
 
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 
@@ -10,8 +15,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreationRequest;
+import uk.gov.hmcts.reform.professionalapi.controller.request.NewUserCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.response.IdamStatus;
+import uk.gov.hmcts.reform.professionalapi.utils.OrganisationFixtures;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ActiveProfiles("functional")
@@ -22,22 +28,49 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
 
 
     public RequestSpecification generateBearerTokenForPuiManager() {
-        OrganisationCreationRequest request = professionalApiClient.createOrganisationRequest().build();
-        createAndUpdateOrganisationToActive(hmctsAdmin, request);
-        String lastName = request.getSuperUser().getLastName();
-        String firstName = request.getSuperUser().getFirstName();
-        String email = request.getSuperUser().getEmail();
-        return bearerTokenForPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiUserManager, firstName, lastName, email);
+        Map<String, Object> response = professionalApiClient.createOrganisation();
+        String orgIdentifierResponse = (String) response.get("organisationIdentifier");
+        professionalApiClient.updateOrganisation(orgIdentifierResponse, hmctsAdmin);
+
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("pui-user-manager");
+        String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+        String lastName = "someLastName";
+        String firstName = "someName";
+        NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(userEmail)
+                .roles(userRoles)
+                .jurisdictions(OrganisationFixtures.createJurisdictions())
+                .build();
+        professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
+
+        return bearerTokenForPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiUserManager, firstName, lastName, userEmail);
     }
 
     public RequestSpecification generateBearerTokenForNonPuiManager() {
         if (bearerTokenForNonPuiUserManager == null) {
-            OrganisationCreationRequest request = professionalApiClient.createOrganisationRequest().build();
-            createAndUpdateOrganisationToActive(hmctsAdmin, request);
-            String lastName = request.getSuperUser().getLastName();
-            String firstName = request.getSuperUser().getFirstName();
-            String email = request.getSuperUser().getEmail();
-            return bearerTokenForNonPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiCaseManager, firstName, lastName, email);
+
+            Map<String, Object> response = professionalApiClient.createOrganisation();
+            String orgIdentifierResponse = (String) response.get("organisationIdentifier");
+            professionalApiClient.updateOrganisation(orgIdentifierResponse, hmctsAdmin);
+
+            List<String> userRoles = new ArrayList<>();
+            userRoles.add("pui-case-manager");
+            String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+            String lastName = "someLastName";
+            String firstName = "someName";
+            NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .email(userEmail)
+                    .roles(userRoles)
+                    .jurisdictions(OrganisationFixtures.createJurisdictions())
+                    .build();
+            professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
+
+            return bearerTokenForNonPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiCaseManager, firstName, lastName, userEmail);
         } else {
             return bearerTokenForNonPuiUserManager;
         }

@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 @Slf4j
@@ -29,5 +30,15 @@ public class ProfessionalUserReqValidator {
         }
 
         isValidEmail(email);
+    }
+
+    public void validateAddRoles(String userId, UsersRoles usersRoles) {
+
+
+        if (null == userId && null == usersRoles || CollectionUtils.isEmpty(usersRoles.getRoles())) {
+            log.error("No input values for the request");
+            throw new EmptyResultDataAccessException(1);
+        }
+
     }
 }

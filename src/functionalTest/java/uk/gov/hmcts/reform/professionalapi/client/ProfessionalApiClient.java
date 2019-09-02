@@ -1,10 +1,7 @@
 package uk.gov.hmcts.reform.professionalapi.client;
 
 import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static uk.gov.hmcts.reform.professionalapi.controller.request.ContactInformationCreationRequest.aContactInformationCreationRequest;
 import static uk.gov.hmcts.reform.professionalapi.controller.request.DxAddressCreationRequest.dxAddressCreationRequest;
@@ -161,15 +158,28 @@ public class ProfessionalApiClient {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> addNewUserToAnOrganisation(String orgId, String role, NewUserCreationRequest newUserCreationRequest) {
+    public Map<String, Object> addNewUserToAnOrganisation(String userId, String role, NewUserCreationRequest newUserCreationRequest) {
         Response response = getMultipleAuthHeadersInternal()
                 .body(newUserCreationRequest)
                 .proxy("proxyout.reform.hmcts.net", 8080)
-                .post("/refdata/internal/v1/organisations/" + orgId + "/users/")
+                .post("/refdata/internal/v1/organisations/users/"+ userId + "/roles")
                 .andReturn();
         response.then()
                 .assertThat()
                 .statusCode(CREATED.value());
+
+        return response.body().as(Map.class);
+    }
+
+    public Map<String, Object> addNewUserToAnExternalOrganisation(String role, NewUserCreationRequest newUserCreationRequest) {
+        Response response = getMultipleAuthHeadersInternal()
+                .body(newUserCreationRequest)
+                .proxy("proxyout.reform.hmcts.net", 8080)
+                .post("/refdata/internal/v1/organisations/" + "/users/")
+                .andReturn();
+        response.then()
+                .assertThat()
+                .statusCode(FORBIDDEN.value());
 
         return response.body().as(Map.class);
     }
@@ -290,6 +300,18 @@ public class ProfessionalApiClient {
 
         Response response = requestSpecification
                 .get("/refdata/external/v1/organisations/users?status=" + userStatus)
+                .andReturn();
+        response.then()
+                .assertThat()
+                .statusCode(status.value());
+
+        return response.body().as(Map.class);
+    }
+
+    public Map<String, Object> AddRolesToActiveUsersBySuperUserInSameOrganisationExternal(HttpStatus status, RequestSpecification requestSpecification, String userStatus) {
+
+        Response response = requestSpecification
+                .post("/refdata/external/v1/users/{userId}/roles" + userStatus)
                 .andReturn();
         response.then()
                 .assertThat()

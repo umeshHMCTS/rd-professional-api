@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.professionalapi.controller.advice.ErrorResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.advice.ExternalApiException;
 import uk.gov.hmcts.reform.professionalapi.controller.feign.UserProfileFeignClient;
 import uk.gov.hmcts.reform.professionalapi.controller.request.RetrieveUserProfilesRequest;
+import uk.gov.hmcts.reform.professionalapi.controller.request.UsersRoles;
 import uk.gov.hmcts.reform.professionalapi.controller.response.NewUserResponse;
 import uk.gov.hmcts.reform.professionalapi.controller.response.ProfessionalUsersEntityResponse;
 import uk.gov.hmcts.reform.professionalapi.domain.Organisation;
@@ -129,5 +130,12 @@ public class ProfessionalUserServiceImpl implements ProfessionalUserService {
     @Override
     public ProfessionalUser persistUser(ProfessionalUser updatedProfessionalUser) {
         return professionalUserRepository.save(updatedProfessionalUser);
+    }
+
+    @Override
+    public ResponseEntity addRolesToUser(UsersRoles usersRoles, String userId) {
+
+
+        return null;
     }
 }

@@ -1,15 +1,20 @@
 package uk.gov.hmcts.reform.professionalapi;
 
+import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.professionalapi.controller.request.NewUserCreationRequest.aNewUserCreationRequest;
 
 import io.restassured.RestAssured;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
+import net.serenitybdd.rest.SerenityRest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -22,8 +27,10 @@ import uk.gov.hmcts.reform.professionalapi.client.ProfessionalApiClient;
 import uk.gov.hmcts.reform.professionalapi.client.S2sClient;
 import uk.gov.hmcts.reform.professionalapi.config.Oauth2;
 import uk.gov.hmcts.reform.professionalapi.config.TestConfigProperties;
+import uk.gov.hmcts.reform.professionalapi.controller.request.NewUserCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.controller.request.OrganisationCreationRequest;
 import uk.gov.hmcts.reform.professionalapi.idam.IdamClient;
+import uk.gov.hmcts.reform.professionalapi.utils.OrganisationFixtures;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = {TestConfigProperties.class, Oauth2.class})
@@ -61,6 +68,8 @@ public abstract class AuthorizationFunctionalTest {
 
 
     protected ProfessionalApiClient professionalApiClient;
+    RequestSpecification bearerTokenForPuiUserManager;
+    RequestSpecification bearerTokenForNonPuiUserManager;
 
 
     @Autowired
@@ -79,8 +88,8 @@ public abstract class AuthorizationFunctionalTest {
 
         String s2sToken = new S2sClient(s2sUrl, s2sName, s2sSecret).signIntoS2S();
         log.info("idamClient: " + idamClient);
-        /*SerenityRest.proxy("proxyout.reform.hmcts.net", 8080);
-        RestAssured.proxy("proxyout.reform.hmcts.net", 8080);*/
+        SerenityRest.proxy("proxyout.reform.hmcts.net", 8080);
+        RestAssured.proxy("proxyout.reform.hmcts.net", 8080);
 
         professionalApiClient = new ProfessionalApiClient(
                 professionalApiUrl,
@@ -125,6 +134,55 @@ public abstract class AuthorizationFunctionalTest {
             assertThat(professionalUsersResponse.get("roles")).isNotNull();
         } else {
             assertThat(professionalUsersResponse.get("roles")).isNull();
+        }
+    }
+
+    public RequestSpecification generateBearerTokenForPuiManager() {
+        Map<String, Object> response = professionalApiClient.createOrganisation();
+        String orgIdentifierResponse = (String) response.get("organisationIdentifier");
+        professionalApiClient.updateOrganisation(orgIdentifierResponse, hmctsAdmin);
+
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("pui-user-manager");
+        String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+        String lastName = "someLastName";
+        String firstName = "someName";
+        NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(userEmail)
+                .roles(userRoles)
+                .jurisdictions(OrganisationFixtures.createJurisdictions())
+                .build();
+        professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
+
+        return bearerTokenForPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiUserManager, firstName, lastName, userEmail);
+    }
+
+    public RequestSpecification generateBearerTokenForNonPuiManager() {
+        if (bearerTokenForNonPuiUserManager == null) {
+
+            Map<String, Object> response = professionalApiClient.createOrganisation();
+            String orgIdentifierResponse = (String) response.get("organisationIdentifier");
+            professionalApiClient.updateOrganisation(orgIdentifierResponse, hmctsAdmin);
+
+            List<String> userRoles = new ArrayList<>();
+            userRoles.add("pui-case-manager");
+            String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+            String lastName = "someLastName";
+            String firstName = "someName";
+            NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .email(userEmail)
+                    .roles(userRoles)
+                    .jurisdictions(OrganisationFixtures.createJurisdictions())
+                    .build();
+            professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
+
+            return bearerTokenForNonPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiCaseManager, firstName, lastName, userEmail);
+        } else {
+            return bearerTokenForNonPuiUserManager;
         }
     }
 }
