@@ -4,9 +4,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import uk.gov.hmcts.reform.professionalapi.controller.response.IdamStatus;
 
 @Component
 @Slf4j
@@ -21,24 +21,35 @@ public class ProfessionalUserReqValidator {
         return false;
     }
 
-    public void validateRequest(String orgId, String showDeleted, String email) {
+    public void validateRequest(String orgId, String showDeleted, String email, String status) {
+        if (null == orgId  && null == email && null == showDeleted && null == status) {
+            throw new InvalidRequest("No input values given for the request");
+        }
 
-
-        if (null == orgId && null == showDeleted && null == email) {
-            log.error("No input values for the request");
-            throw new EmptyResultDataAccessException(1);
+        if (!StringUtils.isEmpty(status)) {
+            validateUserStatus(status);
         }
 
         isValidEmail(email);
     }
 
-    public void validateAddRoles(String userId, UsersRoles usersRoles) {
+    public static void validateUserStatus(String status) {
+        boolean valid = false;
 
-
-        if (null == userId && null == usersRoles || CollectionUtils.isEmpty(usersRoles.getRoles())) {
-            log.error("No input values for the request");
-            throw new EmptyResultDataAccessException(1);
+        for (IdamStatus idamStatus : IdamStatus.values()) {
+            if (status.equalsIgnoreCase(idamStatus.toString())) {
+                valid = true;
+            }
         }
 
+        if (!valid) {
+            throw new InvalidRequest("The status provided is invalid");
+        }
+    }
+
+    public void validateStatusIsActive(String status) {
+        if (!status.equalsIgnoreCase(IdamStatus.ACTIVE.toString())) {
+            throw new InvalidRequest("Your role does not permit you to search for users that are not active");
+        }
     }
 }

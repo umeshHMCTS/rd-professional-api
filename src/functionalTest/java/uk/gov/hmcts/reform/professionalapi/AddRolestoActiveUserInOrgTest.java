@@ -71,15 +71,5 @@ public class AddRolestoActiveUserInOrgTest extends AuthorizationFunctionalTest {
 //    }
 
 
-
-
-
-
-
-    // I need to create a new organisation with a super user.
-    // need to add an user to this organisation - this user must be active
-    // I need to add roles to this user
-
-
 }
 }

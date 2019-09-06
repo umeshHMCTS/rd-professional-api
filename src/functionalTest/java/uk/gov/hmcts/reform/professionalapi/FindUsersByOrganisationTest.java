@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.professionalapi;
 
-import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 import static uk.gov.hmcts.reform.professionalapi.controller.request.NewUserCreationRequest.aNewUserCreationRequest;
+
+import io.restassured.specification.RequestSpecification;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import io.restassured.specification.RequestSpecification;
 
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 
@@ -34,9 +34,12 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
 
         List<String> userRoles = new ArrayList<>();
         userRoles.add("pui-user-manager");
-        String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+        String userEmail = randomAlphabetic(5).toLowerCase() + "@hotmail.com";
         String lastName = "someLastName";
         String firstName = "someName";
+
+        bearerTokenForPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiUserManager, firstName, lastName, userEmail);
+
         NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
                 .firstName(firstName)
                 .lastName(lastName)
@@ -46,7 +49,7 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
                 .build();
         professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
 
-        return bearerTokenForPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiUserManager, firstName, lastName, userEmail);
+        return bearerTokenForNonPuiUserManager;
     }
 
     public RequestSpecification generateBearerTokenForNonPuiManager() {
@@ -58,9 +61,12 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
 
             List<String> userRoles = new ArrayList<>();
             userRoles.add("pui-case-manager");
-            String userEmail = randomAlphabetic(5) + "@hotmail.com".toLowerCase();
+            String userEmail = randomAlphabetic(5).toLowerCase() + "@hotmail.com";
             String lastName = "someLastName";
             String firstName = "someName";
+
+            bearerTokenForNonPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiCaseManager, firstName, lastName, userEmail);
+
             NewUserCreationRequest userCreationRequest = aNewUserCreationRequest()
                     .firstName(firstName)
                     .lastName(lastName)
@@ -70,7 +76,7 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
                     .build();
             professionalApiClient.addNewUserToAnOrganisation(orgIdentifierResponse, hmctsAdmin, userCreationRequest);
 
-            return bearerTokenForNonPuiUserManager = professionalApiClient.getMultipleAuthHeadersExternal(puiCaseManager, firstName, lastName, userEmail);
+            return bearerTokenForNonPuiUserManager;
         } else {
             return bearerTokenForNonPuiUserManager;
         }
@@ -121,21 +127,18 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
     @Test
     public void ac3_find_all_status_users_for_an_organisation_with_pui_user_manager_should_return_200() {
         Map<String, Object> response = professionalApiClient.searchAllActiveUsersByOrganisationExternal(HttpStatus.OK, generateBearerTokenForPuiManager(), "");
-        response.get("idamStatus").equals(IdamStatus.ACTIVE.toString());
         validateUsers(response, false);
     }
 
     @Test
     public void ac4_find_all_active_users_for_an_organisation_with_pui_user_manager_should_return_200() {
         Map<String, Object> response = professionalApiClient.searchAllActiveUsersByOrganisationExternal(HttpStatus.OK, generateBearerTokenForPuiManager(), "Active");
-        response.get("idamStatus").equals(IdamStatus.ACTIVE.toString());
         validateUsers(response, false);
     }
 
-
     @Test
-    public void ac5_find_all_pending_users_for_an_organisation_with_pui_user_manager_when_no_pending_user_exists_should_return_404() {
-        professionalApiClient.searchAllActiveUsersByOrganisationExternal(HttpStatus.NOT_FOUND, generateBearerTokenForPuiManager(), "Pending");
+    public void ac5_find_all_suspended_users_for_an_organisation_with_pui_user_manager_when_no_suspended_user_exists_should_return_404() {
+        professionalApiClient.searchAllActiveUsersByOrganisationExternal(HttpStatus.NOT_FOUND, generateBearerTokenForPuiManager(), "Suspended");
     }
 
     @Test
@@ -145,7 +148,6 @@ public class FindUsersByOrganisationTest extends AuthorizationFunctionalTest {
 
     @Test
     public void ac7_find_all_active_users_for_an_organisation_with_invalid_bearer_token_should_return_403() {
-
         String invalidBearerToken = "Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiS0N4QmRlaHNIVUY2OTc4U2l6dklTRXhjWDBFP"
                 + "SIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJmcmVnLXRlc3QtdXNlci0xdTdGTm9kQ0tYQGZlZW1haWwuY29tIiwiYXV0aF9sZXZlbCI6MCwiYX"
                 + "VkaXRUcmFja2luZ0lkIjoiNWRjMmVlYjQtZjc2OS00ZWM3LTliZjgtZDE0YjNlMTMzMGE5IiwiaXNzIjoiaHR0cHM6Ly9mb3JnZXJvY2stYW0"
