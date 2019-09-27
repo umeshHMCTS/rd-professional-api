@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.professionalapi.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.ArrayList;
 
 import java.util.List;
@@ -13,7 +11,6 @@ import uk.gov.hmcts.reform.professionalapi.idam.IdamClient;
 @Slf4j
 public class ProfessionalApiClient {
     private final String s2sToken;
-
 
     protected IdamClient idamClient;
 
