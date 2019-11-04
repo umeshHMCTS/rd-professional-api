@@ -273,6 +273,22 @@ public class ProfessionalApiClient {
         return response.body().as(Map.class);
     }
 
+    public Map<String, Object> editPbaAccountsByOrgId(String orgId, String hmctsAdmin) {
+
+        Response response = getMultipleAuthHeadersInternal()
+                .body("")
+                .put("/refdata/internal/v1/organisations/" + orgId + "/pbas")
+                .andReturn();
+
+        log.info("Retrieve edit pba response: " + response.asString());
+
+        response.then()
+                .assertThat()
+                .statusCode(OK.value());
+
+        return response.body().as(Map.class);
+    }
+
     @SuppressWarnings("unchecked")
     public void retrieveBadRequestForPendingOrganisationWithPbaEmail(String email, String role) {
 
@@ -527,4 +543,6 @@ public class ProfessionalApiClient {
     private JsonNode parseJson(String jsonString) throws IOException {
         return mapper.readTree(jsonString);
     }
+
+
 }

@@ -62,7 +62,7 @@ public class LegacyPbaAccountServiceImpl implements LegacyPbaAccountService {
         return paymentAccountPbaNumbers;
     }
 
-    private List<String> getPbaNumbersFromPaymentAccount(List<PaymentAccount> userMapPaymentAccount, List<PaymentAccount> paymentAccountsEntity) {
+    public List<String> getPbaNumbersFromPaymentAccount(List<PaymentAccount> userMapPaymentAccount, List<PaymentAccount> paymentAccountsEntity) {
 
         List<String> paymentAccountPbaNumbers = new ArrayList<>();
 
@@ -80,7 +80,7 @@ public class LegacyPbaAccountServiceImpl implements LegacyPbaAccountService {
         return paymentAccountPbaNumbers;
     }
 
-    private List<PaymentAccount> getPaymentAccountsFromUserAccountMap(List<UserAccountMap> userAccountMaps) {
+    public List<PaymentAccount> getPaymentAccountsFromUserAccountMap(List<UserAccountMap> userAccountMaps) {
 
         List<PaymentAccount> userMapPaymentAccount;
 
