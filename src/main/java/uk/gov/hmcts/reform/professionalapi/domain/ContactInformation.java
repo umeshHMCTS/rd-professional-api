@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Entity(name = "contact_information")
 @NoArgsConstructor
@@ -25,34 +26,42 @@ public class ContactInformation implements Serializable {
     @GeneratedValue(strategy = AUTO)
     private UUID id;
 
+    @Autowired
     @Column(name = "ADDRESS_LINE1")
     @Size(max = 150)
     private String addressLine1;
 
+    @Autowired
     @Column(name = "ADDRESS_LINE2")
     @Size(max = 50)
     private String addressLine2;
 
+    @Autowired
     @Column(name = "ADDRESS_LINE3")
     @Size(max = 50)
     private String addressLine3;
 
+    @Autowired
     @Column(name = "TOWN_CITY")
     @Size(max = 50)
     private String townCity;
 
+    @Autowired
     @Column(name = "COUNTY")
     @Size(max = 50)
     private String county;
 
+    @Autowired
     @Column(name = "COUNTRY")
     @Size(max = 50)
     private String country;
 
+    @Autowired
     @Column(name = "POSTCODE")
     @Size(max = 14)
     private String postCode;
 
+    @Autowired
     @ManyToOne
     @JoinColumn(name = "ORGANISATION_ID", nullable = false)
     private Organisation organisation;

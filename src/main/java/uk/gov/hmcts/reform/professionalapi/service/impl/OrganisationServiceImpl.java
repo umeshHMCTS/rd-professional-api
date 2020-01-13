@@ -54,18 +54,28 @@ import uk.gov.hmcts.reform.professionalapi.util.RefDataUtil;
 @Service
 @Slf4j
 public class OrganisationServiceImpl implements OrganisationService {
+    @Autowired
     OrganisationRepository organisationRepository;
+    @Autowired
     ProfessionalUserRepository professionalUserRepository;
+    @Autowired
     PaymentAccountRepository paymentAccountRepository;
+    @Autowired
     DxAddressRepository dxAddressRepository;
+    @Autowired
     ContactInformationRepository contactInformationRepository;
+    @Autowired
     PrdEnumRepository prdEnumRepository;
+    @Autowired
     UserAccountMapService userAccountMapService;
+    @Autowired
     UserProfileFeignClient userProfileFeignClient;
+    @Autowired
     PrdEnumService prdEnumService;
+    @Autowired
     UserAttributeService userAttributeService;
 
-    @Autowired
+    /*@Autowired
     public OrganisationServiceImpl(
             OrganisationRepository organisationRepository,
             ProfessionalUserRepository professionalUserRepository,
@@ -89,7 +99,7 @@ public class OrganisationServiceImpl implements OrganisationService {
         this.userProfileFeignClient = userProfileFeignClient;
         this.prdEnumService = prdEnumService;
         this.userAttributeService = userAttributeService;
-    }
+    }*/
 
     @Override
     @Transactional
