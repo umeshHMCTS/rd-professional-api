@@ -82,7 +82,7 @@ idam:
   s2s-auth:
     totp_secret: ${S2S_SECRET:AAAAAAAAAAAAAAAA}
     microservice: rd_professional_api
-    url: ${S2S_URL:http://rpe-service-auth-provider-ithc.service.core-compute-aat.internal}
+    url: ${S2S_URL:http://rpe-service-auth-provider-ithc.service.core-compute-ithc.internal}
     pbaFromUserAccountMap: false
 usermap:
     pbaFromUserAccountMap:
